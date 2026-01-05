@@ -5,8 +5,10 @@
 <title>Corte Certo - Agenda</title>
 <style>
   body { font-family: Arial; padding: 20px; }
-  #horarios button { margin: 5px; padding: 10px; }
+  #horarios button { margin: 5px; padding: 10px; width: 100px; }
   .agendamento { margin-top: 10px; padding: 5px; border: 1px solid #ccc; }
+  #formulario { border: 1px solid #888; padding: 10px; margin-top: 10px; display:none; }
+  label { display:block; margin:5px 0; }
 </style>
 </head>
 <body>
@@ -16,11 +18,28 @@
 
 <div id="horarios"></div>
 
+<div id="formulario">
+  <h3>Agendar horário: <span id="horarioSelecionado"></span></h3>
+  <label>Nome: <input type="text" id="nomeCliente"></label>
+  <label>Serviço: <input type="text" id="servicoCliente" value="Corte Certo 39,90"></label>
+  <label>Pagamento: 
+    <select id="pagamentoCliente">
+      <option value="Pix">Pix</option>
+      <option value="Cartão">Cartão</option>
+      <option value="Dinheiro">Dinheiro no local</option>
+    </select>
+  </label>
+  <button onclick="salvarAgendamento()">Salvar</button>
+  <button onclick="cancelarFormulario()">Cancelar</button>
+</div>
+
 <h2>Agendamentos do Dia</h2>
 <div id="lista"></div>
 
 <script>
-// --- Gerar horários 08:00 às 22:00, 30 em 30 min
+let horarioAtual = '';
+
+// --- Gerar horários 08:00 às 22:00
 function gerarHorarios() {
   const div = document.getElementById('horarios');
   div.innerHTML = '';
@@ -51,38 +70,53 @@ function gerarHorarios() {
     div.appendChild(document.createElement('br'));
 
     minuto += 30;
-    if(minuto === 60) { minuto = 0; hora++; }
+    if(minuto === 60){ minuto = 0; hora++; }
   }
 }
 
-// --- Agendamento do cliente
-function agendarHorario(horario) {
-  const cliente = prompt("Nome do cliente:");
-  if(!cliente) return alert("Nome obrigatório.");
+// --- Abrir formulário para agendamento
+function agendarHorario(horario){
+  horarioAtual = horario;
+  document.getElementById('horarioSelecionado').textContent = horario;
+  document.getElementById('formulario').style.display = 'block';
+}
 
-  const servico = prompt("Serviço (ex: Corte Certo 39,90):");
-  if(!servico) return alert("Serviço obrigatório.");
+// --- Cancelar formulário
+function cancelarFormulario(){
+  document.getElementById('formulario').style.display = 'none';
+  horarioAtual = '';
+  document.getElementById('nomeCliente').value = '';
+}
 
-  const pagamento = prompt("Pagamento (Pix, Cartão ou Dinheiro no local):");
-  if(!pagamento) return alert("Forma de pagamento obrigatória.");
+// --- Salvar agendamento
+function salvarAgendamento(){
+  const cliente = document.getElementById('nomeCliente').value.trim();
+  const servico = document.getElementById('servicoCliente').value.trim();
+  const pagamento = document.getElementById('pagamentoCliente').value;
+
+  if(!cliente) return alert("Nome obrigatório");
 
   const data = document.getElementById('data').value || new Date().toISOString().split('T')[0];
   const chave = 'barbearia_' + data;
   const salvos = JSON.parse(localStorage.getItem(chave)) || [];
 
-  salvos.push({horario, cliente, servico, pagamento});
+  salvos.push({horario: horarioAtual, cliente, servico, pagamento});
   localStorage.setItem(chave, JSON.stringify(salvos));
+
+  document.getElementById('formulario').style.display = 'none';
+  document.getElementById('nomeCliente').value = '';
+  horarioAtual = '';
 
   listarAgendamentos(salvos);
   gerarHorarios();
 }
 
-// --- Listar agendamentos e botão cancelar
-function listarAgendamentos(lista) {
+// --- Listar agendamentos
+function listarAgendamentos(lista){
   const div = document.getElementById('lista');
   div.innerHTML = '';
 
-  lista.forEach((a, index) => {
+  lista.forEach((a,index)=>{
     const item = document.createElement('div');
     item.className = 'agendamento';
     item.innerHTML = `
@@ -97,14 +131,14 @@ function listarAgendamentos(lista) {
 }
 
 // --- Cancelar agendamento
-function cancelarAgendamento(index) {
+function cancelarAgendamento(index){
   const data = document.getElementById('data').value || new Date().toISOString().split('T')[0];
   const chave = 'barbearia_' + data;
   const salvos = JSON.parse(localStorage.getItem(chave)) || [];
 
   if(!confirm("Deseja realmente cancelar este agendamento?")) return;
 
-  salvos.splice(index, 1);
+  salvos.splice(index,1);
   localStorage.setItem(chave, JSON.stringify(salvos));
 
   listarAgendamentos(salvos);
@@ -112,7 +146,7 @@ function cancelarAgendamento(index) {
 }
 
 // --- Atualizar ao mudar a data
-document.getElementById('data').addEventListener('change', () => {
+document.getElementById('data').addEventListener('change',()=>{
   const data = document.getElementById('data').value || new Date().toISOString().split('T')[0];
   const chave = 'barbearia_' + data;
   const salvos = JSON.parse(localStorage.getItem(chave)) || [];
@@ -129,4 +163,3 @@ gerarHorarios();
 
 </body>
 </html>
-
