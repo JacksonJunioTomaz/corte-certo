@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Corte Certo</title>
+<title>Corte Certo - Agendamento</title>
 
 <style>
 body {
@@ -21,14 +21,21 @@ body {
 }
 
 .card {
-  background: rgba(0,0,0,0.7);
-  border-radius: 12px;
+  background: rgba(0,0,0,0.75);
+  border-radius: 14px;
   padding: 20px;
-  box-shadow: 0 0 20px rgba(0,0,0,0.6);
+  box-shadow: 0 0 25px rgba(0,0,0,0.7);
 }
 
 h1, h2 {
   text-align: center;
+  margin-bottom: 10px;
+}
+
+.subtitulo {
+  text-align: center;
+  font-size: 14px;
+  opacity: 0.8;
   margin-bottom: 15px;
 }
 
@@ -83,6 +90,14 @@ select option {
   background: #a00;
   color: #fff;
 }
+
+.confirmacao {
+  background: #0a0;
+  padding: 12px;
+  border-radius: 8px;
+  margin-top: 12px;
+  text-align: center;
+}
 </style>
 </head>
 
@@ -92,7 +107,8 @@ select option {
 
   <!-- LOGIN -->
   <div id="loginBox" class="card">
-    <h1>Corte Certo</h1>
+    <h1>💈 Corte Certo</h1>
+    <p class="subtitulo">Agendamento Online</p>
     <input id="usuario" placeholder="Usuário">
     <input id="senha" type="password" placeholder="Senha">
     <button onclick="fazerLogin()">Entrar</button>
@@ -104,6 +120,8 @@ select option {
 
     <input id="nomeCliente" placeholder="Seu nome">
 
+    <input type="date" id="dataAgendamento">
+
     <select id="pagamento">
       <option value="">Forma de pagamento</option>
       <option>Pix (no local)</option>
@@ -114,6 +132,8 @@ select option {
     <p><strong>Serviço:</strong> Corte Certo – R$ 39,90</p>
 
     <div class="horarios" id="horarios"></div>
+
+    <div id="confirmacao" class="confirmacao hidden"></div>
 
     <button onclick="logout()">Sair</button>
   </div>
@@ -134,16 +154,17 @@ const adminPass = "1234";
 let agendamentos = JSON.parse(localStorage.getItem("agendamentos")) || [];
 
 function fazerLogin() {
-  const u = document.getElementById("usuario").value;
-  const s = document.getElementById("senha").value;
+  const u = usuario.value;
+  const s = senha.value;
 
   if (u === adminUser && s === adminPass) {
-    document.getElementById("loginBox").classList.add("hidden");
-    document.getElementById("barbeiro").classList.remove("hidden");
+    loginBox.classList.add("hidden");
+    barbeiro.classList.remove("hidden");
     carregarAgenda();
   } else if (u && s) {
-    document.getElementById("loginBox").classList.add("hidden");
-    document.getElementById("cliente").classList.remove("hidden");
+    loginBox.classList.add("hidden");
+    cliente.classList.remove("hidden");
+    setDataHoje();
     gerarHorarios();
   } else {
     alert("Preencha usuário e senha");
@@ -154,14 +175,21 @@ function logout() {
   location.reload();
 }
 
+function setDataHoje() {
+  const hoje = new Date().toISOString().split("T")[0];
+  dataAgendamento.value = hoje;
+}
+
 function gerarHorarios() {
-  const horariosDiv = document.getElementById("horarios");
-  horariosDiv.innerHTML = "";
+  horarios.innerHTML = "";
+  confirmacao.classList.add("hidden");
 
   for (let h = 8; h < 22; h++) {
-    for (let m of ["00", "30"]) {
-      const hora = `${String(h).padStart(2, "0")}:${m}`;
-      const ocupado = agendamentos.find(a => a.hora === hora);
+    for (let m of ["00","30"]) {
+      const hora = `${String(h).padStart(2,"0")}:${m}`;
+      const ocupado = agendamentos.find(a =>
+        a.hora === hora && a.data === dataAgendamento.value
+      );
 
       const btn = document.createElement("button");
       btn.textContent = hora;
@@ -172,47 +200,56 @@ function gerarHorarios() {
         btn.onclick = () => agendar(hora);
       }
 
-      horariosDiv.appendChild(btn);
+      horarios.appendChild(btn);
     }
   }
 }
 
-function agendar(hora) {
-  const nome = document.getElementById("nomeCliente").value;
-  const pagamento = document.getElementById("pagamento").value;
+dataAgendamento.addEventListener("change", gerarHorarios);
 
-  if (!nome || !pagamento) {
-    alert("Preencha nome e forma de pagamento");
+function agendar(hora) {
+  if (!nomeCliente.value || !pagamento.value) {
+    alert("Preencha nome e pagamento");
     return;
   }
 
+  const data = dataAgendamento.value;
+
   agendamentos.push({
+    data,
     hora,
-    cliente: nome,
+    cliente: nomeCliente.value,
     pagamento
   });
 
   localStorage.setItem("agendamentos", JSON.stringify(agendamentos));
-  alert("Horário agendado com sucesso!");
+
+  confirmacao.innerHTML = `
+    ✅ <strong>Agendamento confirmado!</strong><br>
+    📅 ${data} às ${hora}<br>
+    💈 Corte Certo<br>
+    💳 ${pagamento}
+  `;
+  confirmacao.classList.remove("hidden");
+
   gerarHorarios();
 }
 
 function carregarAgenda() {
-  const agenda = document.getElementById("agendaBarbeiro");
-  agenda.innerHTML = "";
-
+  agendaBarbeiro.innerHTML = "";
   agendamentos.forEach((a, i) => {
     const div = document.createElement("div");
     div.innerHTML = `
-      <p>${a.hora} - ${a.cliente} (${a.pagamento})</p>
+      <p>📅 ${a.data} ⏰ ${a.hora}<br>
+      👤 ${a.cliente} – ${a.pagamento}</p>
       <button class="cancelar" onclick="cancelar(${i})">Cancelar</button>
     `;
-    agenda.appendChild(div);
+    agendaBarbeiro.appendChild(div);
   });
 }
 
 function cancelar(i) {
-  agendamentos.splice(i, 1);
+  agendamentos.splice(i,1);
   localStorage.setItem("agendamentos", JSON.stringify(agendamentos));
   carregarAgenda();
 }
