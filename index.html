@@ -1,223 +1,132 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Corte Certo – Agenda Profissional</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      background: #111;
-      color: #fff;
-      margin: 0;
-      padding: 20px;
-    }
-    h1, h2 {
-      text-align: center;
-      color: #f5c542;
-    }
-    .card {
-      background: #1c1c1c;
-      padding: 20px;
-      max-width: 420px;
-      margin: 20px auto;
-      border-radius: 10px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.4);
-    }
-    label {
-      display: block;
-      margin-top: 10px;
-      font-size: 14px;
-    }
-    input, select, button {
-      width: 100%;
-      padding: 10px;
-      margin-top: 5px;
-      border-radius: 6px;
-      border: none;
-    }
-    button {
-      background: #f5c542;
-      color: #000;
-      font-weight: bold;
-      cursor: pointer;
-      margin-top: 10px;
-    }
-    button[disabled] {
-      background: #555;
-      color: #aaa;
-      cursor: not-allowed;
-    }
-    .status {
-      font-size: 12px;
-      color: #ccc;
-      text-align: center;
-      margin-top: 10px;
-    }
-    .agendamento {
-      background: #2a2a2a;
-      padding: 10px;
-      border-radius: 6px;
-      margin-top: 8px;
-      font-size: 14px;
-    }
-  </style>
+<meta charset="UTF-8">
+<title>Corte Certo - Agenda</title>
+<style>
+  body { font-family: Arial; padding: 20px; }
+  #horarios button { margin: 5px; padding: 10px; }
+  .agendamento { margin-top: 10px; padding: 5px; border: 1px solid #ccc; }
+</style>
 </head>
 <body>
+<h1>Corte Certo - Agenda</h1>
 
-  <h1>✂️ Corte Certo</h1>
+<label>Data: <input type="date" id="data"></label><br><br>
 
-  <!-- LOGIN -->
-  <div class="card" id="loginCard">
-    <h2>Área do Barbeiro</h2>
-    <label>Nome da Barbearia</label>
-    <input type="text" id="barbearia" placeholder="Ex: Barbearia do João" />
+<div id="horarios"></div>
 
-    <label>Senha</label>
-    <input type="password" id="senha" placeholder="••••" />
+<h2>Agendamentos do Dia</h2>
+<div id="lista"></div>
 
-    <button onclick="login()">Entrar</button>
-    <div class="status">7 dias grátis • Plano Fundador R$ 29,90 vitalício (20 vagas)</div>
-  </div>
+<script>
+// --- Gerar horários 08:00 às 22:00, 30 em 30 min
+function gerarHorarios() {
+  const div = document.getElementById('horarios');
+  div.innerHTML = '';
 
-  <!-- AGENDA -->
-  <div class="card" id="agendaCard" style="display:none;">
-    <h2 id="tituloBarbearia"></h2>
+  let hora = 8;
+  let minuto = 0;
+  const data = document.getElementById('data').value || new Date().toISOString().split('T')[0];
+  const chave = 'barbearia_' + data;
+  const salvos = JSON.parse(localStorage.getItem(chave)) || [];
 
-    <label>Data</label>
-    <input type="date" id="data" />
+  while(hora < 22 || (hora === 22 && minuto === 0)) {
+    let horaStr = hora.toString().padStart(2,'0');
+    let minStr = minuto.toString().padStart(2,'0');
+    let horario = `${horaStr}:${minStr}`;
 
-    <label>Nome do Cliente</label>
-    <input type="text" id="cliente" placeholder="Nome do cliente" />
+    const btn = document.createElement('button');
+    btn.textContent = horario;
 
-    <label>Serviço</label>
-    <select id="servico">
-      <option value="Corte Certo - R$ 39,90">Corte Certo - R$ 39,90</option>
-    </select>
-
-    <button onclick="mostrarHorarios()">Ver horários</button>
-
-    <div id="horarios"></div>
-
-    <h3 style="margin-top:20px; color:#f5c542;">Agendamentos do dia</h3>
-    <div id="lista"></div>
-
-    <button onclick="logout()">Sair</button>
-  </div>
-
-  <script>
-    const horariosPadrao = gerarHorarios();
-
-    function gerarHorarios() {
-      const lista = [];
-      let hora = 8;
-      let minuto = 0;
-
-      while (hora < 22 || (hora === 22 && minuto === 0)) {
-        const h = String(hora).padStart(2, '0') + ':' + String(minuto).padStart(2, '0');
-        lista.push(h);
-        minuto += 30;
-        if (minuto === 60) {
-          minuto = 0;
-          hora++;
-        }
-      }
-      return lista;
+    // Bloquear horário ocupado
+    if(salvos.find(a => a.horario === horario)) {
+      btn.disabled = true;
+      btn.textContent += " (Ocupado)";
     }
 
-    function login() {
-      const barbearia = document.getElementById('barbearia').value;
-      const senha = document.getElementById('senha').value;
+    btn.onclick = () => agendarHorario(horario);
 
-      if (!barbearia || !senha) {
-        alert('Preencha todos os campos');
-        return;
-      }
+    div.appendChild(btn);
+    div.appendChild(document.createElement('br'));
 
-      localStorage.setItem('barbearia', barbearia);
-      document.getElementById('tituloBarbearia').innerText = barbearia + ' – Agenda';
-      document.getElementById('loginCard').style.display = 'none';
-      document.getElementById('agendaCard').style.display = 'block';
-    }
+    minuto += 30;
+    if(minuto === 60) { minuto = 0; hora++; }
+  }
+}
 
-    function logout() {
-      location.reload();
-    }
+// --- Agendamento do cliente
+function agendarHorario(horario) {
+  const cliente = prompt("Nome do cliente:");
+  if(!cliente) return alert("Nome obrigatório.");
 
-    function mostrarHorarios() {
-      const data = document.getElementById('data').value;
-      if (!data) {
-        alert('Escolha uma data');
-        return;
-      }
+  const servico = prompt("Serviço (ex: Corte Certo 39,90):");
+  if(!servico) return alert("Serviço obrigatório.");
 
-      const barbearia = localStorage.getItem('barbearia');
-      const chave = barbearia + '_' + data;
-      const salvos = JSON.parse(localStorage.getItem(chave)) || [];
+  const pagamento = prompt("Pagamento (Pix, Cartão ou Dinheiro no local):");
+  if(!pagamento) return alert("Forma de pagamento obrigatória.");
 
-      const horariosDiv = document.getElementById('horarios');
-      horariosDiv.innerHTML = '';
+  const data = document.getElementById('data').value || new Date().toISOString().split('T')[0];
+  const chave = 'barbearia_' + data;
+  const salvos = JSON.parse(localStorage.getItem(chave)) || [];
 
-      horariosPadrao.forEach(h => {
-        const btn = document.createElement('button');
-        const ocupado = salvos.find(s => s.horario === h);
+  salvos.push({horario, cliente, servico, pagamento});
+  localStorage.setItem(chave, JSON.stringify(salvos));
 
-        if (ocupado) {
-          btn.innerText = h + ' – Ocupado';
-          btn.disabled = true;
-        } else {
-          btn.innerText = h + ' – Livre';
-          btn.onclick = () => abrirReserva(h, chave);
-        }
-        horariosDiv.appendChild(btn);
-      });
+  listarAgendamentos(salvos);
+  gerarHorarios();
+}
 
-      listarAgendamentos(salvos);
-    }
+// --- Listar agendamentos e botão cancelar
+function listarAgendamentos(lista) {
+  const div = document.getElementById('lista');
+  div.innerHTML = '';
 
-    function abrirReserva(horario, chave) {
-      const cliente = prompt('Nome do cliente:');
-      if (!cliente) return;
+  lista.forEach((a, index) => {
+    const item = document.createElement('div');
+    item.className = 'agendamento';
+    item.innerHTML = `
+      <strong>${a.horario}</strong><br>
+      ${a.cliente}<br>
+      ${a.servico}<br>
+      ${a.pagamento}<br>
+      <button onclick="cancelarAgendamento(${index})">Cancelar</button>
+    `;
+    div.appendChild(item);
+  });
+}
 
-      const servico = 'Corte Certo - R$ 39,90';
+// --- Cancelar agendamento
+function cancelarAgendamento(index) {
+  const data = document.getElementById('data').value || new Date().toISOString().split('T')[0];
+  const chave = 'barbearia_' + data;
+  const salvos = JSON.parse(localStorage.getItem(chave)) || [];
 
-      const salvos = JSON.parse(localStorage.getItem(chave)) || [];
-      salvos.push({ horario, cliente, servico, pagamento: 'Pagar no local' });
-      localStorage.setItem(chave, JSON.stringify(salvos));
-      mostrarHorarios();
-    }
+  if(!confirm("Deseja realmente cancelar este agendamento?")) return;
 
-    function listarAgendamentos(lista) {
-      const div = document.getElementById('lista');
-      div.innerHTML = '';
+  salvos.splice(index, 1);
+  localStorage.setItem(chave, JSON.stringify(salvos));
 
-      const barbearia = localStorage.getItem('barbearia');
-      const data = document.getElementById('data').value;
-      const chave = barbearia + '_' + data;
+  listarAgendamentos(salvos);
+  gerarHorarios();
+}
 
-      lista.forEach((a, index) => {
-        const item = document.createElement('div');
-        item.className = 'agendamento';
-        item.innerHTML = `
-          <strong>${a.horario}</strong><br>
-          ${a.cliente}<br>
-          ${a.servico}<br>
-          ${a.pagamento}<br>
-          <button onclick="cancelarAgendamento(${index}, '${chave}')">Cancelar</button>
-        `;
-        div.appendChild(item);
-      });
-    }
+// --- Atualizar ao mudar a data
+document.getElementById('data').addEventListener('change', () => {
+  const data = document.getElementById('data').value || new Date().toISOString().split('T')[0];
+  const chave = 'barbearia_' + data;
+  const salvos = JSON.parse(localStorage.getItem(chave)) || [];
+  listarAgendamentos(salvos);
+  gerarHorarios();
+});
 
-    function cancelarAgendamento(index, chave) {
-      if (!confirm('Deseja cancelar este agendamento?')) return;
-
-      const salvos = JSON.parse(localStorage.getItem(chave)) || [];
-      salvos.splice(index, 1);
-      localStorage.setItem(chave, JSON.stringify(salvos));
-      mostrarHorarios();
-    }
-  </script>
+// --- Inicializar com data de hoje
+document.getElementById('data').value = new Date().toISOString().split('T')[0];
+const chaveHoje = 'barbearia_' + document.getElementById('data').value;
+listarAgendamentos(JSON.parse(localStorage.getItem(chaveHoje)) || []);
+gerarHorarios();
+</script>
 
 </body>
 </html>
+
