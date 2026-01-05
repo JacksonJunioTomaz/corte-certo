@@ -1,3 +1,187 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Corte Certo</title>
+
+<style>
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  min-height: 100vh;
+  background: linear-gradient(135deg, #000, #1c1c1c, #000);
+  color: #fff;
+}
+
+.container {
+  max-width: 420px;
+  margin: auto;
+  padding: 20px;
+}
+
+.card {
+  background: rgba(0,0,0,0.75);
+  border-radius: 12px;
+  padding: 20px;
+  margin-bottom: 15px;
+}
+
+input, select {
+  width: 100%;
+  padding: 10px;
+  margin: 6px 0;
+  border-radius: 6px;
+  border: none;
+  background: #111;
+  color: #fff;
+  font-size: 15px;
+}
+
+select option {
+  background: #111;
+  color: #fff;
+}
+
+button {
+  width: 100%;
+  padding: 12px;
+  margin-top: 10px;
+  border: none;
+  border-radius: 8px;
+  background: #d4af37;
+  color: #000;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.horarios button {
+  background: #222;
+  color: #fff;
+  margin-bottom: 6px;
+}
+
+.horarios button.ocupado {
+  background: #555;
+  cursor: not-allowed;
+}
+
+.cancelar {
+  background: #a00;
+  color: #fff;
+}
+
+.hidden {
+  display: none;
+}
+
+.divisor {
+  text-align: center;
+  margin: 20px 0;
+  opacity: 0.6;
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+<!-- CLIENTE -->
+<div class="card">
+  <h1>💈 Corte Certo</h1>
+  <h2>Agendar Horário</h2>
+
+  <input id="nomeCliente" placeholder="Seu nome">
+  <input id="dataInput" type="date">
+
+  <select id="pagamento">
+    <option value="">Forma de pagamento</option>
+    <option>Pix (no local)</option>
+    <option>Cartão (no local)</option>
+    <option>Dinheiro</option>
+  </select>
+
+  <div class="horarios" id="horarios"></div>
+
+  <h3>📌 Meus Agendamentos</h3>
+  <div id="meusAgendamentos"></div>
+</div>
+
+<div class="divisor">— área do barbeiro —</div>
+
+<!-- LOGIN BARBEIRO -->
+<div id="areaLoginBarbeiro" class="card">
+  <h2>💈 Acesso do Barbeiro</h2>
+
+  <input
+    id="usuarioBarbeiro"
+    placeholder="Usuário"
+    autocomplete="off"
+    autocapitalize="none"
+    autocorrect="off"
+    spellcheck="false"
+  >
+
+  <input
+    id="senhaBarbeiro"
+    type="password"
+    placeholder="Senha"
+    autocomplete="off"
+  >
+
+  <button onclick="entrarBarbeiro()">Entrar</button>
+</div>
+
+<!-- BARBEIRO -->
+<div id="barbeiro" class="card hidden">
+  <h2>Agenda Completa</h2>
+  <div id="agenda"></div>
+  <button onclick="logout()">Sair</button>
+</div>
+
+</div>
+
+<script>
+const barbeiroUser = "barbeiro";
+const barbeiroPass = "1234";
+
+let agendamentos = JSON.parse(localStorage.getItem("agendamentos")) || [];
+
+const dataInput = document.getElementById("dataInput");
+dataInput.value = new Date().toISOString().split("T")[0];
+
+gerarHorarios();
+listarMeusAgendamentos();
+
+dataInput.onchange = gerarHorarios;
+document.getElementById("nomeCliente").oninput = listarMeusAgendamentos;
+
+function gerarHorarios() {
+  horarios.innerHTML = "";
+
+  for (let h = 8; h < 22; h++) {
+    for (let m of ["00", "30"]) {
+      const hora = `${String(h).padStart(2,"0")}:${m}`;
+
+      const ocupado = agendamentos.find(a =>
+        a.data === dataInput.value && a.hora === hora
+      );
+
+      const btn = document.createElement("button");
+      btn.textContent = hora;
+
+      if (ocupado) {
+        btn.classList.add("ocupado");
+      } else {
+        btn.onclick = () => agendar(hora);
+      }
+
+      horarios.appendChild(btn);
+    }
+  }
+}
+
 function agendar(hora) {
   if (!nomeCliente.value || !pagamento.value) {
     alert("Preencha nome e pagamento");
@@ -16,8 +200,93 @@ function agendar(hora) {
   gerarHorarios();
   listarMeusAgendamentos();
 
-  // 👉 ATUALIZA A AGENDA DO BARBEIRO SE ELE ESTIVER LOGADO
   if (!document.getElementById("barbeiro").classList.contains("hidden")) {
     carregarAgenda();
   }
 }
+
+function podeCancelar(a) {
+  const agora = new Date();
+  const dataHora = new Date(`${a.data}T${a.hora}:00`);
+  return (dataHora - agora) / 36e5 >= 3;
+}
+
+function listarMeusAgendamentos() {
+  meusAgendamentos.innerHTML = "";
+
+  agendamentos
+    .filter(a => a.cliente === nomeCliente.value)
+    .forEach((a, i) => {
+      const permitido = podeCancelar(a);
+
+      meusAgendamentos.innerHTML += `
+        <p>📅 ${a.data} ⏰ ${a.hora}</p>
+        <button class="cancelar"
+          onclick="${permitido
+            ? `cancelarCliente(${i})`
+            : `alert('Cancelamento permitido somente até 3 horas antes')`}">
+          Cancelar
+        </button>
+        <hr>
+      `;
+    });
+}
+
+function cancelarCliente(i) {
+  agendamentos.splice(i, 1);
+  salvar();
+  gerarHorarios();
+  listarMeusAgendamentos();
+
+  if (!document.getElementById("barbeiro").classList.contains("hidden")) {
+    carregarAgenda();
+  }
+}
+
+function salvar() {
+  localStorage.setItem("agendamentos", JSON.stringify(agendamentos));
+}
+
+/* BARBEIRO */
+function entrarBarbeiro() {
+  if (
+    document.getElementById("usuarioBarbeiro").value === barbeiroUser &&
+    document.getElementById("senhaBarbeiro").value === barbeiroPass
+  ) {
+    document.getElementById("areaLoginBarbeiro").style.display = "none";
+    document.getElementById("barbeiro").classList.remove("hidden");
+    carregarAgenda();
+  } else {
+    alert("Usuário ou senha inválidos");
+  }
+}
+
+function carregarAgenda() {
+  agenda.innerHTML = "";
+  agendamentos.forEach((a, i) => {
+    agenda.innerHTML += `
+      <p>📅 ${a.data} ⏰ ${a.hora}<br>
+      👤 ${a.cliente} | 💳 ${a.pagamento}</p>
+      <button class="cancelar" onclick="cancelarBarbeiro(${i})">
+        Cancelar
+      </button>
+      <hr>
+    `;
+  });
+}
+
+function cancelarBarbeiro(i) {
+  agendamentos.splice(i, 1);
+  salvar();
+  carregarAgenda();
+  gerarHorarios();
+  listarMeusAgendamentos();
+}
+
+function logout() {
+  location.reload();
+}
+</script>
+
+</body>
+</html>
