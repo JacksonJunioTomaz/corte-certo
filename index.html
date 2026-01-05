@@ -9,8 +9,6 @@
     padding: 20px;
     max-width: 500px;
     margin: auto;
-
-    /* Fundo bonito degradê */
     background: linear-gradient(to bottom, #f8c291, #f6e58d);
     color: #222;
     border-radius: 10px;
@@ -19,12 +17,21 @@
 
   h1,h2,h3 { text-align: center; }
 
+  #oferta {
+    text-align:center;
+    margin-bottom:15px;
+    padding:10px;
+    background-color:#f1c40f;
+    border-radius:8px;
+    font-weight:bold;
+  }
+
   #horarios button {
     width: 100%;
     font-size: 18px;
     padding: 12px;
     margin:5px 0;
-    background-color: #f39c12; /* laranja */
+    background-color: #f39c12;
     border: none;
     border-radius: 5px;
     color: white;
@@ -63,6 +70,11 @@
 
 <h1>Corte Certo - Agenda</h1>
 
+<div id="oferta">
+🎉 Oferta de Fundador: 20 primeiras vagas!<br>
+Preço: R$39,90
+</div>
+
 <label>Data: <input type="date" id="data"></label>
 
 <div id="horarios"></div>
@@ -76,7 +88,10 @@
     <input type="text" id="nomeCliente">
   </label>
   <label>Serviço:
-    <input type="text" id="servicoCliente" value="Corte Certo 39,90">
+    <select id="servicoCliente">
+      <option value="Corte Certo 39,90">Corte Certo 39,90</option>
+      <option value="Teste Grátis">Teste Grátis</option>
+    </select>
   </label>
   <label>Pagamento:
     <select id="pagamentoCliente">
@@ -94,6 +109,8 @@
 
 <script>
 let horarioAtual = '';
+const limiteFundador = 20; // 20 primeiras vagas
+const limiteTeste = 5; // 5 testes grátis por dia
 
 // --- Gerar horários 08:00 às 22:00
 function gerarHorarios() {
@@ -105,6 +122,14 @@ function gerarHorarios() {
   const data = document.getElementById('data').value || new Date().toISOString().split('T')[0];
   const chave = 'barbearia_' + data;
   const salvos = JSON.parse(localStorage.getItem(chave)) || [];
+
+  // Contar quantos agendamentos Fundador já existem
+  const totalFundador = salvos.filter(a => a.servico === "Corte Certo 39,90").length;
+
+  // Atualizar oferta de fundador se esgotou
+  if(totalFundador >= limiteFundador){
+    document.getElementById('oferta').textContent = "Oferta de Fundador esgotada! Preço normal: R$39,90";
+  }
 
   while(hora < 22 || (hora === 22 && minuto === 0)) {
     let horaStr = hora.toString().padStart(2,'0');
@@ -146,17 +171,32 @@ function cancelarFormulario(){
 // --- Salvar agendamento
 function salvarAgendamento(){
   const cliente = document.getElementById('nomeCliente').value.trim();
-  const servico = document.getElementById('servicoCliente').value.trim();
+  const servico = document.getElementById('servicoCliente').value;
   const pagamento = document.getElementById('pagamentoCliente').value;
   const horario = document.getElementById('horarioSelecionado').value;
 
   if(!horario){ return alert("Selecione um horário"); }
   if(!cliente){ return alert("Nome obrigatório"); }
-  if(!servico){ return alert("Serviço obrigatório"); }
 
   const data = document.getElementById('data').value || new Date().toISOString().split('T')[0];
   const chave = 'barbearia_' + data;
   const salvos = JSON.parse(localStorage.getItem(chave)) || [];
+
+  // Limite Teste Grátis
+  if(servico === "Teste Grátis"){
+    const totalTeste = salvos.filter(a => a.servico === "Teste Grátis").length;
+    if(totalTeste >= limiteTeste){
+      return alert("Desculpe, todos os testes grátis do dia já foram agendados.");
+    }
+  }
+
+  // Limite Fundador
+  if(servico === "Corte Certo 39,90"){
+    const totalFundador = salvos.filter(a => a.servico === "Corte Certo 39,90").length;
+    if(totalFundador >= limiteFundador){
+      alert("Oferta de Fundador esgotada! Você estará pagando preço normal.");
+    }
+  }
 
   salvos.push({horario, cliente, servico, pagamento});
   localStorage.setItem(chave, JSON.stringify(salvos));
