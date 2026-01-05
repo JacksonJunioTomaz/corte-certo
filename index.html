@@ -70,12 +70,6 @@ button {
   color: #fff;
 }
 
-.bloqueado {
-  background: #444;
-  color: #aaa;
-  cursor: not-allowed;
-}
-
 .hidden {
   display: none;
 }
@@ -116,11 +110,11 @@ button {
 <div class="divisor">— área do barbeiro —</div>
 
 <!-- LOGIN BARBEIRO -->
-<div id="loginBarbeiro" class="card">
+<div id="areaLoginBarbeiro" class="card">
   <h2>💈 Acesso do Barbeiro</h2>
   <input id="usuarioBarbeiro" placeholder="Usuário">
   <input id="senhaBarbeiro" type="password" placeholder="Senha">
-  <button onclick="loginBarbeiro()">Entrar</button>
+  <button onclick="entrarBarbeiro()">Entrar</button>
 </div>
 
 <!-- BARBEIRO -->
@@ -138,22 +132,20 @@ const barbeiroPass = "1234";
 
 let agendamentos = JSON.parse(localStorage.getItem("agendamentos")) || [];
 
-const hoje = new Date().toISOString().split("T")[0];
-data.value = hoje;
+const dataInput = document.getElementById("data");
+dataInput.value = new Date().toISOString().split("T")[0];
 
 gerarHorarios();
 listarMeusAgendamentos();
 
-data.onchange = gerarHorarios;
-nomeCliente.oninput = listarMeusAgendamentos;
+dataInput.onchange = gerarHorarios;
+document.getElementById("nomeCliente").oninput = listarMeusAgendamentos;
 
 function gerarHorarios() {
   horarios.innerHTML = "";
 
-  for (let h = 8; h <= 22; h++) {
+  for (let h = 8; h < 22; h++) {
     for (let m of ["00", "30"]) {
-      if (h === 22 && m === "30") continue;
-
       const hora = `${String(h).padStart(2,"0")}:${m}`;
       const ocupado = agendamentos.find(a =>
         a.data === data.value && a.hora === hora
@@ -175,7 +167,7 @@ function gerarHorarios() {
 
 function agendar(hora) {
   if (!nomeCliente.value || !pagamento.value) {
-    alert("Preencha seu nome e forma de pagamento");
+    alert("Preencha nome e pagamento");
     return;
   }
 
@@ -187,16 +179,15 @@ function agendar(hora) {
   });
 
   salvar();
-  alert("✅ Horário agendado!");
+  alert("Horário agendado!");
   gerarHorarios();
   listarMeusAgendamentos();
 }
 
-function podeCancelar(agendamento) {
+function podeCancelar(a) {
   const agora = new Date();
-  const dataHora = new Date(`${agendamento.data}T${agendamento.hora}:00`);
-  const diffHoras = (dataHora - agora) / (1000 * 60 * 60);
-  return diffHoras >= 3;
+  const dataHora = new Date(`${a.data}T${a.hora}:00`);
+  return (dataHora - agora) / 36e5 >= 3;
 }
 
 function listarMeusAgendamentos() {
@@ -211,8 +202,8 @@ function listarMeusAgendamentos() {
       meusAgendamentos.innerHTML += `
         <p>📅 ${a.data} ⏰ ${a.hora}</p>
         <button class="cancelar ${!permitido ? 'bloqueado' : ''}"
-          ${!permitido ? 'onclick="alert(\'Cancelamento permitido somente até 3 horas antes\')"' 
-          : `onclick="cancelarCliente(${i})"`}>
+          onclick="${permitido ? `cancelarCliente(${i})` 
+          : `alert('Cancelamento permitido até 3h antes')`}">
           Cancelar
         </button>
         <hr>
@@ -220,8 +211,8 @@ function listarMeusAgendamentos() {
     });
 }
 
-function cancelarCliente(index) {
-  agendamentos.splice(index, 1);
+function cancelarCliente(i) {
+  agendamentos.splice(i, 1);
   salvar();
   gerarHorarios();
   listarMeusAgendamentos();
@@ -232,12 +223,12 @@ function salvar() {
 }
 
 /* BARBEIRO */
-function loginBarbeiro() {
+function entrarBarbeiro() {
   if (
     usuarioBarbeiro.value === barbeiroUser &&
     senhaBarbeiro.value === barbeiroPass
   ) {
-    loginBarbeiro.style.display = "none";
+    document.getElementById("areaLoginBarbeiro").style.display = "none";
     barbeiro.classList.remove("hidden");
     carregarAgenda();
   } else {
