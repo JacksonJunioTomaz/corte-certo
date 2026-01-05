@@ -4,13 +4,58 @@
 <meta charset="UTF-8">
 <title>Corte Certo - Agenda</title>
 <style>
-  body { font-family: Arial, sans-serif; padding: 20px; max-width: 500px; margin:auto; }
+  body {
+    font-family: Arial, sans-serif;
+    padding: 20px;
+    max-width: 500px;
+    margin: auto;
+
+    /* Fundo bonito degradê */
+    background: linear-gradient(to bottom, #f8c291, #f6e58d);
+    color: #222;
+    border-radius: 10px;
+    box-shadow: 0 0 15px rgba(0,0,0,0.2);
+  }
+
   h1,h2,h3 { text-align: center; }
-  #horarios button { width: 100%; font-size: 18px; padding: 12px; margin:5px 0; }
-  .agendamento { margin-top: 10px; padding: 5px; border: 1px solid #ccc; }
-  #formulario { border: 1px solid #888; padding: 10px; margin-top: 20px; }
+
+  #horarios button {
+    width: 100%;
+    font-size: 18px;
+    padding: 12px;
+    margin:5px 0;
+    background-color: #f39c12; /* laranja */
+    border: none;
+    border-radius: 5px;
+    color: white;
+    cursor: pointer;
+  }
+
+  #horarios button:disabled {
+    background-color: #ccc;
+    color: #666;
+    cursor: not-allowed;
+  }
+
+  .agendamento {
+    margin-top: 10px;
+    padding: 8px;
+    border: 1px solid #888;
+    border-radius: 6px;
+    background-color: rgba(255,255,255,0.9);
+  }
+
+  #formulario {
+    border: 1px solid #888;
+    padding: 10px;
+    margin-top: 20px;
+    background-color: rgba(255,255,255,0.95);
+    border-radius: 8px;
+  }
+
   label { display:block; margin:5px 0; }
-  input, select { width: 100%; padding: 5px; margin-top: 3px; }
+  input, select { width: 100%; padding: 6px; margin-top: 3px; border-radius: 4px; border:1px solid #aaa; }
+
   button { cursor: pointer; }
 </style>
 </head>
