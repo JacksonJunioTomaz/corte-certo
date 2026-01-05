@@ -24,11 +24,6 @@ body {
   background: rgba(0,0,0,0.7);
   border-radius: 12px;
   padding: 20px;
-  box-shadow: 0 0 20px rgba(0,0,0,0.6);
-}
-
-h1, h2 {
-  text-align: center;
 }
 
 input, select {
@@ -41,11 +36,6 @@ input, select {
   color: #fff;
 }
 
-select option {
-  background: #111;
-  color: #fff;
-}
-
 button {
   width: 100%;
   padding: 12px;
@@ -53,7 +43,6 @@ button {
   border: none;
   border-radius: 8px;
   background: #d4af37;
-  color: #000;
   font-weight: bold;
   cursor: pointer;
 }
@@ -126,13 +115,18 @@ const barbeiroPass = "1234";
 let agendamentos = JSON.parse(localStorage.getItem("agendamentos")) || [];
 
 function login() {
+  login.style.display = "none";
+
   if (usuario.value === barbeiroUser && senha.value === barbeiroPass) {
-    login.style.display = "none";
     barbeiro.classList.remove("hidden");
     carregarAgenda();
   } else {
-    login.style.display = "none";
     cliente.classList.remove("hidden");
+
+    // 🔥 define data de hoje automaticamente
+    const hoje = new Date().toISOString().split("T")[0];
+    data.value = hoje;
+
     gerarHorarios();
   }
 }
@@ -144,7 +138,7 @@ function logout() {
 function gerarHorarios() {
   horarios.innerHTML = "";
   for (let h = 8; h < 22; h++) {
-    for (let m of ["00", "30"]) {
+    for (let m of ["00","30"]) {
       const hora = `${String(h).padStart(2,"0")}:${m}`;
       const ocupado = agendamentos.find(a =>
         a.data === data.value && a.hora === hora
@@ -167,8 +161,8 @@ function gerarHorarios() {
 data.onchange = gerarHorarios;
 
 function agendar(hora) {
-  if (!nomeCliente.value || !data.value || !pagamento.value) {
-    alert("Preencha todos os campos");
+  if (!nomeCliente.value || !pagamento.value) {
+    alert("Preencha tudo");
     return;
   }
 
@@ -188,10 +182,8 @@ function carregarAgenda() {
   agenda.innerHTML = "";
   agendamentos.forEach((a, i) => {
     agenda.innerHTML += `
-      <p>
-        📅 ${a.data} ⏰ ${a.hora}<br>
-        👤 ${a.cliente} | 💳 ${a.pagamento}
-      </p>
+      <p>📅 ${a.data} ⏰ ${a.hora}<br>
+      👤 ${a.cliente} | 💳 ${a.pagamento}</p>
       <button class="cancelar" onclick="cancelar(${i})">Cancelar</button>
       <hr>
     `;
@@ -199,7 +191,7 @@ function carregarAgenda() {
 }
 
 function cancelar(i) {
-  agendamentos.splice(i, 1);
+  agendamentos.splice(i,1);
   localStorage.setItem("agendamentos", JSON.stringify(agendamentos));
   carregarAgenda();
 }
