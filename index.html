@@ -74,8 +74,8 @@ button {
 <div class="container">
 
 <!-- LOGIN -->
-<div id="login" class="card">
-  <h1>Corte Certo</h1>
+<div id="loginCard" class="card">
+  <h1>💈 Corte Certo</h1>
   <input id="usuario" placeholder="Usuário">
   <input id="senha" type="password" placeholder="Senha">
   <button onclick="login()">Entrar</button>
@@ -90,8 +90,8 @@ button {
 
   <select id="pagamento">
     <option value="">Forma de pagamento</option>
-    <option>Pix</option>
-    <option>Cartão</option>
+    <option>Pix (no local)</option>
+    <option>Cartão (no local)</option>
     <option>Dinheiro</option>
   </select>
 
@@ -101,7 +101,7 @@ button {
 
 <!-- BARBEIRO -->
 <div id="barbeiro" class="card hidden">
-  <h2>Agenda Completa</h2>
+  <h2>Agenda do Barbeiro</h2>
   <div id="agenda"></div>
   <button onclick="logout()">Sair</button>
 </div>
@@ -115,19 +115,19 @@ const barbeiroPass = "1234";
 let agendamentos = JSON.parse(localStorage.getItem("agendamentos")) || [];
 
 function login() {
-  login.style.display = "none";
-
   if (usuario.value === barbeiroUser && senha.value === barbeiroPass) {
+    loginCard.classList.add("hidden");
     barbeiro.classList.remove("hidden");
     carregarAgenda();
-  } else {
+  } else if (usuario.value && senha.value) {
+    loginCard.classList.add("hidden");
     cliente.classList.remove("hidden");
 
-    // 🔥 define data de hoje automaticamente
     const hoje = new Date().toISOString().split("T")[0];
     data.value = hoje;
-
     gerarHorarios();
+  } else {
+    alert("Preencha usuário e senha");
   }
 }
 
@@ -162,7 +162,7 @@ data.onchange = gerarHorarios;
 
 function agendar(hora) {
   if (!nomeCliente.value || !pagamento.value) {
-    alert("Preencha tudo");
+    alert("Preencha todos os campos");
     return;
   }
 
@@ -174,7 +174,7 @@ function agendar(hora) {
   });
 
   localStorage.setItem("agendamentos", JSON.stringify(agendamentos));
-  alert("Horário agendado!");
+  alert("✅ Horário agendado com sucesso!");
   gerarHorarios();
 }
 
