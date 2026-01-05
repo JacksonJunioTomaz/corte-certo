@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Corte Certo – Agenda Profissional</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #111;
+      color: #fff;
+      margin: 0;
+      padding: 20px;
+    }
+    h1, h2 {
+      text-align: center;
+      color: #f5c542;
+    }
+    .card {
+      background: #1c1c1c;
+      padding: 20px;
+      max-width: 420px;
+      margin: 20px auto;
+      border-radius: 10px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+    }
+    label {
+      display: block;
+      margin-top: 10px;
+      font-size: 14px;
+    }
+    input, select, button {
+      width: 100%;
+      padding: 10px;
+      margin-top: 5px;
+      border-radius: 6px;
+      border: none;
+    }
+    button {
+      background: #f5c542;
+      color: #000;
+      font-weight: bold;
+      cursor: pointer;
+      margin-top: 10px;
+    }
+    button[disabled] {
+      background: #555;
+      color: #aaa;
+      cursor: not-allowed;
+    }
+    .status {
+      font-size: 12px;
+      color: #ccc;
+      text-align: center;
+      margin-top: 10px;
+    }
+    .agendamento {
+      background: #2a2a2a;
+      padding: 10px;
+      border-radius: 6px;
+      margin-top: 8px;
+      font-size: 14px;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>✂️ Corte Certo</h1>
+
+  <!-- LOGIN -->
+  <div class="card" id="loginCard">
+    <h2>Área do Barbeiro</h2>
+    <label>Nome da Barbearia</label>
+    <input type="text" id="barbearia" placeholder="Ex: Barbearia do João" />
+
+    <label>Senha</label>
+    <input type="password" id="senha" placeholder="••••" />
+
+    <button onclick="login()">Entrar</button>
+    <div class="status">7 dias grátis • Plano Fundador R$ 29,90 vitalício (20 vagas)</div>
+  </div>
+
+  <!-- AGENDA -->
+  <div class="card" id="agendaCard" style="display:none;">
+    <h2 id="tituloBarbearia"></h2>
+
+    <label>Data</label>
+    <input type="date" id="data" />
+
+    <label>Nome do Cliente</label>
+    <input type="text" id="cliente" placeholder="Nome do cliente" />
+
+    <label>Serviço</label>
+    <select id="servico">
+      <option value="Corte Certo - R$ 39,90">Corte Certo - R$ 39,90</option>
+    </select>
+
+    <button onclick="mostrarHorarios()">Ver horários</button>
+
+    <div id="horarios"></div>
+
+    <h3 style="margin-top:20px; color:#f5c542;">Agendamentos do dia</h3>
+    <div id="lista"></div>
+
+    <button onclick="logout()">Sair</button>
+  </div>
+
+  <script>
+    const horariosPadrao = gerarHorarios();
+
+    function gerarHorarios() {
+      const lista = [];
+      let hora = 8;
+      let minuto = 0;
+
+      while (hora < 22 || (hora === 22 && minuto === 0)) {
+        const h = String(hora).padStart(2, '0') + ':' + String(minuto).padStart(2, '0');
+        lista.push(h);
+        minuto += 30;
+        if (minuto === 60) {
+          minuto = 0;
+          hora++;
+        }
+      }
+      return lista;
+    }
+
+    function login() {
+      const barbearia = document.getElementById('barbearia').value;
+      const senha = document.getElementById('senha').value;
+
+      if (!barbearia || !senha) {
+        alert('Preencha todos os campos');
+        return;
+      }
+
+      localStorage.setItem('barbearia', barbearia);
+      document.getElementById('tituloBarbearia').innerText = barbearia + ' – Agenda';
+      document.getElementById('loginCard').style.display = 'none';
+      document.getElementById('agendaCard').style.display = 'block';
+    }
+
+    function logout() {
+      location.reload();
+    }
+
+    function mostrarHorarios() {
+      const data = document.getElementById('data').value;
+      if (!data) {
+        alert('Escolha uma data');
+        return;
+      }
+
+      const barbearia = localStorage.getItem('barbearia');
+      const chave = barbearia + '_' + data;
+      const salvos = JSON.parse(localStorage.getItem(chave)) || [];
+
+      const horariosDiv = document.getElementById('horarios');
+      horariosDiv.innerHTML = '';
+
+      horariosPadrao.forEach(h => {
+        const btn = document.createElement('button');
+        const ocupado = salvos.find(s => s.horario === h);
+
+        if (ocupado) {
+          btn.innerText = h + ' – Ocupado';
+          btn.disabled = true;
+        } else {
+          btn.innerText = h + ' – Livre';
+          btn.onclick = () => abrirReserva(h, chave);
+        }
+        horariosDiv.appendChild(btn);
+      });
+
+      listarAgendamentos(salvos);
+    }
+
+    function abrirReserva(horario, chave) {
+      const cliente = prompt('Nome do cliente:');
+      if (!cliente) return;
+
+      const servico = 'Corte Certo - R$ 39,90';
+
+      const salvos = JSON.parse(localStorage.getItem(chave)) || [];
+      salvos.push({ horario, cliente, servico, pagamento: 'Pagar no local' });
+      localStorage.setItem(chave, JSON.stringify(salvos));
+      mostrarHorarios();
+    }
+
+    function listarAgendamentos(lista) {
+      const div = document.getElementById('lista');
+      div.innerHTML = '';
+
+      const barbearia = localStorage.getItem('barbearia');
+      const data = document.getElementById('data').value;
+      const chave = barbearia + '_' + data;
+
+      lista.forEach((a, index) => {
+        const item = document.createElement('div');
+        item.className = 'agendamento';
+        item.innerHTML = `
+          <strong>${a.horario}</strong><br>
+          ${a.cliente}<br>
+          ${a.servico}<br>
+          ${a.pagamento}<br>
+          <button onclick="cancelarAgendamento(${index}, '${chave}')">Cancelar</button>
+        `;
+        div.appendChild(item);
+      });
+    }
+
+    function cancelarAgendamento(index, chave) {
+      if (!confirm('Deseja cancelar este agendamento?')) return;
+
+      const salvos = JSON.parse(localStorage.getItem(chave)) || [];
+      salvos.splice(index, 1);
+      localStorage.setItem(chave, JSON.stringify(salvos));
+      mostrarHorarios();
+    }
+  </script>
+
+</body>
+</html>
