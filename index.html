@@ -36,6 +36,11 @@ input, select {
   color: #fff;
 }
 
+select option {
+  background: #111;
+  color: #fff;
+}
+
 button {
   width: 100%;
   padding: 12px;
@@ -43,6 +48,7 @@ button {
   border: none;
   border-radius: 8px;
   background: #d4af37;
+  color: #000;
   font-weight: bold;
   cursor: pointer;
 }
@@ -96,6 +102,7 @@ button {
   </select>
 
   <div class="horarios" id="horarios"></div>
+
   <button onclick="logout()">Sair</button>
 </div>
 
@@ -137,9 +144,14 @@ function logout() {
 
 function gerarHorarios() {
   horarios.innerHTML = "";
-  for (let h = 8; h < 22; h++) {
-    for (let m of ["00","30"]) {
+
+  for (let h = 8; h <= 22; h++) {
+    for (let m of ["00", "30"]) {
+
+      if (h === 22 && m === "30") continue;
+
       const hora = `${String(h).padStart(2,"0")}:${m}`;
+
       const ocupado = agendamentos.find(a =>
         a.data === data.value && a.hora === hora
       );
