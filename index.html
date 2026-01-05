@@ -4,25 +4,36 @@
 <meta charset="UTF-8">
 <title>Corte Certo - Agenda</title>
 <style>
-  body { font-family: Arial; padding: 20px; }
-  #horarios button { margin: 5px; padding: 10px; width: 100px; }
+  body { font-family: Arial, sans-serif; padding: 20px; max-width: 500px; margin:auto; }
+  h1,h2,h3 { text-align: center; }
+  #horarios button { width: 100%; font-size: 18px; padding: 12px; margin:5px 0; }
   .agendamento { margin-top: 10px; padding: 5px; border: 1px solid #ccc; }
-  #formulario { border: 1px solid #888; padding: 10px; margin-top: 10px; display:none; }
+  #formulario { border: 1px solid #888; padding: 10px; margin-top: 20px; }
   label { display:block; margin:5px 0; }
+  input, select { width: 100%; padding: 5px; margin-top: 3px; }
+  button { cursor: pointer; }
 </style>
 </head>
 <body>
+
 <h1>Corte Certo - Agenda</h1>
 
-<label>Data: <input type="date" id="data"></label><br><br>
+<label>Data: <input type="date" id="data"></label>
 
 <div id="horarios"></div>
 
 <div id="formulario">
-  <h3>Agendar horário: <span id="horarioSelecionado"></span></h3>
-  <label>Nome: <input type="text" id="nomeCliente"></label>
-  <label>Serviço: <input type="text" id="servicoCliente" value="Corte Certo 39,90"></label>
-  <label>Pagamento: 
+  <h3>Agendar horário</h3>
+  <label>Horário:
+    <input type="text" id="horarioSelecionado" readonly>
+  </label>
+  <label>Nome:
+    <input type="text" id="nomeCliente">
+  </label>
+  <label>Serviço:
+    <input type="text" id="servicoCliente" value="Corte Certo 39,90">
+  </label>
+  <label>Pagamento:
     <select id="pagamentoCliente">
       <option value="Pix">Pix</option>
       <option value="Cartão">Cartão</option>
@@ -67,25 +78,24 @@ function gerarHorarios() {
     btn.onclick = () => agendarHorario(horario);
 
     div.appendChild(btn);
-    div.appendChild(document.createElement('br'));
 
     minuto += 30;
     if(minuto === 60){ minuto = 0; hora++; }
   }
 }
 
-// --- Abrir formulário para agendamento
+// --- Abrir formulário ao selecionar horário
 function agendarHorario(horario){
-  horarioAtual = horario;
-  document.getElementById('horarioSelecionado').textContent = horario;
-  document.getElementById('formulario').style.display = 'block';
+  document.getElementById('horarioSelecionado').value = horario;
+  document.getElementById('nomeCliente').focus();
 }
 
 // --- Cancelar formulário
 function cancelarFormulario(){
-  document.getElementById('formulario').style.display = 'none';
-  horarioAtual = '';
+  document.getElementById('horarioSelecionado').value = '';
   document.getElementById('nomeCliente').value = '';
+  document.getElementById('servicoCliente').value = 'Corte Certo 39,90';
+  document.getElementById('pagamentoCliente').value = 'Pix';
 }
 
 // --- Salvar agendamento
@@ -93,20 +103,20 @@ function salvarAgendamento(){
   const cliente = document.getElementById('nomeCliente').value.trim();
   const servico = document.getElementById('servicoCliente').value.trim();
   const pagamento = document.getElementById('pagamentoCliente').value;
+  const horario = document.getElementById('horarioSelecionado').value;
 
-  if(!cliente) return alert("Nome obrigatório");
+  if(!horario){ return alert("Selecione um horário"); }
+  if(!cliente){ return alert("Nome obrigatório"); }
+  if(!servico){ return alert("Serviço obrigatório"); }
 
   const data = document.getElementById('data').value || new Date().toISOString().split('T')[0];
   const chave = 'barbearia_' + data;
   const salvos = JSON.parse(localStorage.getItem(chave)) || [];
 
-  salvos.push({horario: horarioAtual, cliente, servico, pagamento});
+  salvos.push({horario, cliente, servico, pagamento});
   localStorage.setItem(chave, JSON.stringify(salvos));
 
-  document.getElementById('formulario').style.display = 'none';
-  document.getElementById('nomeCliente').value = '';
-  horarioAtual = '';
-
+  cancelarFormulario();
   listarAgendamentos(salvos);
   gerarHorarios();
 }
