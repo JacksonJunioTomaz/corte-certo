@@ -21,7 +21,7 @@ body {
 }
 
 .card {
-  background: rgba(0,0,0,0.6);
+  background: rgba(0,0,0,0.7);
   border-radius: 12px;
   padding: 20px;
   box-shadow: 0 0 20px rgba(0,0,0,0.6);
@@ -91,11 +91,11 @@ select option {
 <div class="container">
 
   <!-- LOGIN -->
-  <div id="login" class="card">
+  <div id="loginBox" class="card">
     <h1>Corte Certo</h1>
     <input id="usuario" placeholder="Usuário">
     <input id="senha" type="password" placeholder="Senha">
-    <button onclick="login()">Entrar</button>
+    <button onclick="fazerLogin()">Entrar</button>
   </div>
 
   <!-- CLIENTE -->
@@ -133,26 +133,21 @@ const adminPass = "1234";
 
 let agendamentos = JSON.parse(localStorage.getItem("agendamentos")) || [];
 
-function login() {
-  const u = usuario.value;
-  const s = senha.value;
+function fazerLogin() {
+  const u = document.getElementById("usuario").value;
+  const s = document.getElementById("senha").value;
 
   if (u === adminUser && s === adminPass) {
-    loginDiv(false);
-    barbeiro.classList.remove("hidden");
+    document.getElementById("loginBox").classList.add("hidden");
+    document.getElementById("barbeiro").classList.remove("hidden");
     carregarAgenda();
   } else if (u && s) {
-    localStorage.setItem("cliente", u);
-    loginDiv(false);
-    cliente.classList.remove("hidden");
+    document.getElementById("loginBox").classList.add("hidden");
+    document.getElementById("cliente").classList.remove("hidden");
     gerarHorarios();
   } else {
     alert("Preencha usuário e senha");
   }
-}
-
-function loginDiv(show) {
-  login.classList.toggle("hidden", !show);
 }
 
 function logout() {
@@ -160,54 +155,64 @@ function logout() {
 }
 
 function gerarHorarios() {
-  horarios.innerHTML = "";
+  const horariosDiv = document.getElementById("horarios");
+  horariosDiv.innerHTML = "";
+
   for (let h = 8; h < 22; h++) {
-    for (let m of ["00","30"]) {
-      const hora = `${String(h).padStart(2,"0")}:${m}`;
+    for (let m of ["00", "30"]) {
+      const hora = `${String(h).padStart(2, "0")}:${m}`;
       const ocupado = agendamentos.find(a => a.hora === hora);
+
       const btn = document.createElement("button");
       btn.textContent = hora;
+
       if (ocupado) {
         btn.classList.add("ocupado");
       } else {
         btn.onclick = () => agendar(hora);
       }
-      horarios.appendChild(btn);
+
+      horariosDiv.appendChild(btn);
     }
   }
 }
 
 function agendar(hora) {
-  if (!nomeCliente.value || !pagamento.value) {
-    alert("Preencha nome e pagamento");
+  const nome = document.getElementById("nomeCliente").value;
+  const pagamento = document.getElementById("pagamento").value;
+
+  if (!nome || !pagamento) {
+    alert("Preencha nome e forma de pagamento");
     return;
   }
 
   agendamentos.push({
     hora,
-    cliente: nomeCliente.value,
-    pagamento: pagamento.value
+    cliente: nome,
+    pagamento
   });
 
   localStorage.setItem("agendamentos", JSON.stringify(agendamentos));
-  alert("Horário agendado!");
+  alert("Horário agendado com sucesso!");
   gerarHorarios();
 }
 
 function carregarAgenda() {
-  agendaBarbeiro.innerHTML = "";
+  const agenda = document.getElementById("agendaBarbeiro");
+  agenda.innerHTML = "";
+
   agendamentos.forEach((a, i) => {
     const div = document.createElement("div");
     div.innerHTML = `
       <p>${a.hora} - ${a.cliente} (${a.pagamento})</p>
       <button class="cancelar" onclick="cancelar(${i})">Cancelar</button>
     `;
-    agendaBarbeiro.appendChild(div);
+    agenda.appendChild(div);
   });
 }
 
 function cancelar(i) {
-  agendamentos.splice(i,1);
+  agendamentos.splice(i, 1);
   localStorage.setItem("agendamentos", JSON.stringify(agendamentos));
   carregarAgenda();
 }
