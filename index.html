@@ -2,264 +2,215 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<title>Corte Certo - Agenda</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Corte Certo</title>
+
 <style>
-  body {
-    font-family: Arial, sans-serif;
-    padding: 20px;
-    max-width: 500px;
-    margin: auto;
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  min-height: 100vh;
+  background: linear-gradient(135deg, #000000, #1a1a1a, #000000);
+  color: #fff;
+}
 
-    /* Fundo preto degradê */
-    background: linear-gradient(to bottom, #1c1c1c, #000000);
-    color: #fff; /* texto branco */
-    border-radius: 10px;
-    box-shadow: 0 0 15px rgba(0,0,0,0.3);
-  }
+.container {
+  max-width: 420px;
+  margin: auto;
+  padding: 20px;
+}
 
-  h1,h2,h3 { text-align: center; }
+.card {
+  background: rgba(0,0,0,0.6);
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 0 20px rgba(0,0,0,0.6);
+}
 
-  #oferta {
-    text-align:center;
-    margin-bottom:15px;
-    padding:10px;
-    background-color:#f39c12;
-    border-radius:8px;
-    font-weight:bold;
-    color:#000;
-  }
+h1, h2 {
+  text-align: center;
+  margin-bottom: 15px;
+}
 
-  #horarios button {
-    width: 100%;
-    font-size: 18px;
-    padding: 12px;
-    margin:5px 0;
-    background-color: #f39c12; /* laranja */
-    border: none;
-    border-radius: 5px;
-    color: white;
-    cursor: pointer;
-  }
+button {
+  width: 100%;
+  padding: 12px;
+  margin-top: 8px;
+  border: none;
+  border-radius: 8px;
+  background: #d4af37;
+  color: #000;
+  font-weight: bold;
+  cursor: pointer;
+}
 
-  #horarios button:disabled {
-    background-color: #555;
-    color: #aaa;
-    cursor: not-allowed;
-  }
+button:hover {
+  opacity: 0.9;
+}
 
-  .agendamento {
-    margin-top: 10px;
-    padding: 8px;
-    border: 1px solid #555;
-    border-radius: 6px;
-    background-color: rgba(255,255,255,0.1);
-  }
+input, select {
+  width: 100%;
+  padding: 10px;
+  margin: 6px 0;
+  border-radius: 6px;
+  border: none;
+  background: #111;
+  color: #fff;
+  font-size: 15px;
+}
 
-  #formulario {
-    border: 1px solid #555;
-    padding: 10px;
-    margin-top: 20px;
-    background-color: rgba(255,255,255,0.05);
-    border-radius: 8px;
-  }
+select option {
+  background: #111;
+  color: #fff;
+}
 
-  label { display:block; margin:5px 0; }
-  input, select { 
-    width: 100%; 
-    padding: 6px; 
-    margin-top: 3px; 
-    border-radius: 4px; 
-    border:1px solid #777; 
-    background-color: rgba(255,255,255,0.1);
-    color: #fff;
-  }
+.hidden {
+  display: none;
+}
 
-  button { cursor: pointer; }
+.horarios button {
+  background: #222;
+  color: #fff;
+  margin-bottom: 6px;
+}
+
+.horarios button.ocupado {
+  background: #555;
+  cursor: not-allowed;
+}
+
+.cancelar {
+  background: #a00;
+  color: #fff;
+}
 </style>
 </head>
+
 <body>
 
-<h1>Corte Certo - Agenda</h1>
+<div class="container">
 
-<div id="oferta">
-🎉 Oferta de Fundador: 20 primeiras vagas!<br>
-Preço: R$39,90
-</div>
+  <!-- LOGIN -->
+  <div id="login" class="card">
+    <h1>Corte Certo</h1>
+    <input id="usuario" placeholder="Usuário">
+    <input id="senha" type="password" placeholder="Senha">
+    <button onclick="login()">Entrar</button>
+  </div>
 
-<label>Data: <input type="date" id="data"></label>
+  <!-- CLIENTE -->
+  <div id="cliente" class="card hidden">
+    <h2>Agendar Horário</h2>
 
-<div id="horarios"></div>
+    <input id="nomeCliente" placeholder="Seu nome">
 
-<div id="formulario">
-  <h3>Agendar horário</h3>
-  <label>Horário:
-    <input type="text" id="horarioSelecionado" readonly>
-  </label>
-  <label>Nome:
-    <input type="text" id="nomeCliente">
-  </label>
-  <label>Serviço:
-    <select id="servicoCliente">
-      <option value="Corte Certo 39,90">Corte Certo 39,90</option>
-      <option value="Teste Grátis">Teste Grátis</option>
+    <select id="pagamento">
+      <option value="">Forma de pagamento</option>
+      <option>Pix (no local)</option>
+      <option>Cartão (no local)</option>
+      <option>Dinheiro</option>
     </select>
-  </label>
-  <label>Pagamento:
-    <select id="pagamentoCliente">
-      <option value="Pix">Pix</option>
-      <option value="Cartão">Cartão</option>
-      <option value="Dinheiro">Dinheiro no local</option>
-    </select>
-  </label>
-  <button onclick="salvarAgendamento()">Salvar</button>
-  <button onclick="cancelarFormulario()">Cancelar</button>
-</div>
 
-<h2>Agendamentos do Dia</h2>
-<div id="lista"></div>
+    <p><strong>Serviço:</strong> Corte Certo – R$ 39,90</p>
+
+    <div class="horarios" id="horarios"></div>
+
+    <button onclick="logout()">Sair</button>
+  </div>
+
+  <!-- BARBEIRO -->
+  <div id="barbeiro" class="card hidden">
+    <h2>Agenda do Dia</h2>
+    <div id="agendaBarbeiro"></div>
+    <button onclick="logout()">Sair</button>
+  </div>
+
+</div>
 
 <script>
-let horarioAtual = '';
-const limiteFundador = 20; // 20 primeiras vagas
-const limiteTeste = 5; // 5 testes grátis por dia
+const adminUser = "admin";
+const adminPass = "1234";
 
-// --- Gerar horários 08:00 às 22:00
+let agendamentos = JSON.parse(localStorage.getItem("agendamentos")) || [];
+
+function login() {
+  const u = usuario.value;
+  const s = senha.value;
+
+  if (u === adminUser && s === adminPass) {
+    loginDiv(false);
+    barbeiro.classList.remove("hidden");
+    carregarAgenda();
+  } else if (u && s) {
+    localStorage.setItem("cliente", u);
+    loginDiv(false);
+    cliente.classList.remove("hidden");
+    gerarHorarios();
+  } else {
+    alert("Preencha usuário e senha");
+  }
+}
+
+function loginDiv(show) {
+  login.classList.toggle("hidden", !show);
+}
+
+function logout() {
+  location.reload();
+}
+
 function gerarHorarios() {
-  const div = document.getElementById('horarios');
-  div.innerHTML = '';
-
-  let hora = 8;
-  let minuto = 0;
-  const data = document.getElementById('data').value || new Date().toISOString().split('T')[0];
-  const chave = 'barbearia_' + data;
-  const salvos = JSON.parse(localStorage.getItem(chave)) || [];
-
-  const totalFundador = salvos.filter(a => a.servico === "Corte Certo 39,90").length;
-
-  // Atualizar oferta de fundador se esgotou
-  if(totalFundador >= limiteFundador){
-    document.getElementById('oferta').textContent = "Oferta de Fundador esgotada! Preço normal: R$39,90";
-  }
-
-  while(hora < 22 || (hora === 22 && minuto === 0)) {
-    let horaStr = hora.toString().padStart(2,'0');
-    let minStr = minuto.toString().padStart(2,'0');
-    let horario = `${horaStr}:${minStr}`;
-
-    const btn = document.createElement('button');
-    btn.textContent = horario;
-
-    if(salvos.find(a => a.horario === horario)) {
-      btn.disabled = true;
-      btn.textContent += " (Ocupado)";
+  horarios.innerHTML = "";
+  for (let h = 8; h < 22; h++) {
+    for (let m of ["00","30"]) {
+      const hora = `${String(h).padStart(2,"0")}:${m}`;
+      const ocupado = agendamentos.find(a => a.hora === hora);
+      const btn = document.createElement("button");
+      btn.textContent = hora;
+      if (ocupado) {
+        btn.classList.add("ocupado");
+      } else {
+        btn.onclick = () => agendar(hora);
+      }
+      horarios.appendChild(btn);
     }
-
-    btn.onclick = () => agendarHorario(horario);
-    div.appendChild(btn);
-
-    minuto += 30;
-    if(minuto === 60){ minuto = 0; hora++; }
   }
 }
 
-// --- Abrir formulário ao selecionar horário
-function agendarHorario(horario){
-  document.getElementById('horarioSelecionado').value = horario;
-  document.getElementById('nomeCliente').focus();
-}
-
-// --- Cancelar formulário
-function cancelarFormulario(){
-  document.getElementById('horarioSelecionado').value = '';
-  document.getElementById('nomeCliente').value = '';
-  document.getElementById('servicoCliente').value = 'Corte Certo 39,90';
-  document.getElementById('pagamentoCliente').value = 'Pix';
-}
-
-// --- Salvar agendamento
-function salvarAgendamento(){
-  const cliente = document.getElementById('nomeCliente').value.trim();
-  const servico = document.getElementById('servicoCliente').value;
-  const pagamento = document.getElementById('pagamentoCliente').value;
-  const horario = document.getElementById('horarioSelecionado').value;
-
-  if(!horario){ return alert("Selecione um horário"); }
-  if(!cliente){ return alert("Nome obrigatório"); }
-
-  const data = document.getElementById('data').value || new Date().toISOString().split('T')[0];
-  const chave = 'barbearia_' + data;
-  const salvos = JSON.parse(localStorage.getItem(chave)) || [];
-
-  if(servico === "Teste Grátis"){
-    const totalTeste = salvos.filter(a => a.servico === "Teste Grátis").length;
-    if(totalTeste >= limiteTeste){
-      return alert("Desculpe, todos os testes grátis do dia já foram agendados.");
-    }
+function agendar(hora) {
+  if (!nomeCliente.value || !pagamento.value) {
+    alert("Preencha nome e pagamento");
+    return;
   }
 
-  if(servico === "Corte Certo 39,90"){
-    const totalFundador = salvos.filter(a => a.servico === "Corte Certo 39,90").length;
-    if(totalFundador >= limiteFundador){
-      alert("Oferta de Fundador esgotada! Você estará pagando preço normal.");
-    }
-  }
+  agendamentos.push({
+    hora,
+    cliente: nomeCliente.value,
+    pagamento: pagamento.value
+  });
 
-  salvos.push({horario, cliente, servico, pagamento});
-  localStorage.setItem(chave, JSON.stringify(salvos));
-
-  cancelarFormulario();
-  listarAgendamentos(salvos);
+  localStorage.setItem("agendamentos", JSON.stringify(agendamentos));
+  alert("Horário agendado!");
   gerarHorarios();
 }
 
-// --- Listar agendamentos
-function listarAgendamentos(lista){
-  const div = document.getElementById('lista');
-  div.innerHTML = '';
-
-  lista.forEach((a,index)=>{
-    const item = document.createElement('div');
-    item.className = 'agendamento';
-    item.innerHTML = `
-      <strong>${a.horario}</strong><br>
-      ${a.cliente}<br>
-      ${a.servico}<br>
-      ${a.pagamento}<br>
-      <button onclick="cancelarAgendamento(${index})">Cancelar</button>
+function carregarAgenda() {
+  agendaBarbeiro.innerHTML = "";
+  agendamentos.forEach((a, i) => {
+    const div = document.createElement("div");
+    div.innerHTML = `
+      <p>${a.hora} - ${a.cliente} (${a.pagamento})</p>
+      <button class="cancelar" onclick="cancelar(${i})">Cancelar</button>
     `;
-    div.appendChild(item);
+    agendaBarbeiro.appendChild(div);
   });
 }
 
-// --- Cancelar agendamento
-function cancelarAgendamento(index){
-  const data = document.getElementById('data').value || new Date().toISOString().split('T')[0];
-  const chave = 'barbearia_' + data;
-  const salvos = JSON.parse(localStorage.getItem(chave)) || [];
-
-  if(!confirm("Deseja realmente cancelar este agendamento?")) return;
-
-  salvos.splice(index,1);
-  localStorage.setItem(chave, JSON.stringify(salvos));
-
-  listarAgendamentos(salvos);
-  gerarHorarios();
+function cancelar(i) {
+  agendamentos.splice(i,1);
+  localStorage.setItem("agendamentos", JSON.stringify(agendamentos));
+  carregarAgenda();
 }
-
-// --- Atualizar ao mudar a data
-document.getElementById('data').addEventListener('change',()=>{
-  const data = document.getElementById('data').value || new Date().toISOString().split('T')[0];
-  const chave = 'barbearia_' + data;
-  const salvos = JSON.parse(localStorage.getItem(chave)) || [];
-  listarAgendamentos(salvos);
-  gerarHorarios();
-});
-
-// --- Inicializar com data de hoje
-document.getElementById('data').value = new Date().toISOString().split('T')[0];
-const chaveHoje = 'barbearia_' + document.getElementById('data').value;
-listarAgendamentos(JSON.parse(localStorage.getItem(chaveHoje)) || []);
-gerarHorarios();
 </script>
 
 </body>
