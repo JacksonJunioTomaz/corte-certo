@@ -92,7 +92,7 @@ button {
   <h2>Agendar Horário</h2>
 
   <input id="nomeCliente" placeholder="Seu nome">
-  <input id="data" type="date">
+  <input id="dataInput" type="date">
 
   <select id="pagamento">
     <option value="">Forma de pagamento</option>
@@ -132,7 +132,7 @@ const barbeiroPass = "1234";
 
 let agendamentos = JSON.parse(localStorage.getItem("agendamentos")) || [];
 
-const dataInput = document.getElementById("data");
+const dataInput = document.getElementById("dataInput");
 dataInput.value = new Date().toISOString().split("T")[0];
 
 gerarHorarios();
@@ -147,8 +147,9 @@ function gerarHorarios() {
   for (let h = 8; h < 22; h++) {
     for (let m of ["00", "30"]) {
       const hora = `${String(h).padStart(2,"0")}:${m}`;
+
       const ocupado = agendamentos.find(a =>
-        a.data === data.value && a.hora === hora
+        a.data === dataInput.value && a.hora === hora
       );
 
       const btn = document.createElement("button");
@@ -172,7 +173,7 @@ function agendar(hora) {
   }
 
   agendamentos.push({
-    data: data.value,
+    data: dataInput.value,
     hora,
     cliente: nomeCliente.value,
     pagamento: pagamento.value
@@ -201,8 +202,8 @@ function listarMeusAgendamentos() {
 
       meusAgendamentos.innerHTML += `
         <p>📅 ${a.data} ⏰ ${a.hora}</p>
-        <button class="cancelar ${!permitido ? 'bloqueado' : ''}"
-          onclick="${permitido ? `cancelarCliente(${i})` 
+        <button class="cancelar"
+          onclick="${permitido ? `cancelarCliente(${i})`
           : `alert('Cancelamento permitido até 3h antes')`}">
           Cancelar
         </button>
