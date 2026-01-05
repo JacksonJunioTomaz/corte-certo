@@ -9,10 +9,12 @@
     padding: 20px;
     max-width: 500px;
     margin: auto;
-    background: linear-gradient(to bottom, #f8c291, #f6e58d);
-    color: #222;
+
+    /* Fundo preto degradê */
+    background: linear-gradient(to bottom, #1c1c1c, #000000);
+    color: #fff; /* texto branco */
     border-radius: 10px;
-    box-shadow: 0 0 15px rgba(0,0,0,0.2);
+    box-shadow: 0 0 15px rgba(0,0,0,0.3);
   }
 
   h1,h2,h3 { text-align: center; }
@@ -21,9 +23,10 @@
     text-align:center;
     margin-bottom:15px;
     padding:10px;
-    background-color:#f1c40f;
+    background-color:#f39c12;
     border-radius:8px;
     font-weight:bold;
+    color:#000;
   }
 
   #horarios button {
@@ -31,7 +34,7 @@
     font-size: 18px;
     padding: 12px;
     margin:5px 0;
-    background-color: #f39c12;
+    background-color: #f39c12; /* laranja */
     border: none;
     border-radius: 5px;
     color: white;
@@ -39,29 +42,37 @@
   }
 
   #horarios button:disabled {
-    background-color: #ccc;
-    color: #666;
+    background-color: #555;
+    color: #aaa;
     cursor: not-allowed;
   }
 
   .agendamento {
     margin-top: 10px;
     padding: 8px;
-    border: 1px solid #888;
+    border: 1px solid #555;
     border-radius: 6px;
-    background-color: rgba(255,255,255,0.9);
+    background-color: rgba(255,255,255,0.1);
   }
 
   #formulario {
-    border: 1px solid #888;
+    border: 1px solid #555;
     padding: 10px;
     margin-top: 20px;
-    background-color: rgba(255,255,255,0.95);
+    background-color: rgba(255,255,255,0.05);
     border-radius: 8px;
   }
 
   label { display:block; margin:5px 0; }
-  input, select { width: 100%; padding: 6px; margin-top: 3px; border-radius: 4px; border:1px solid #aaa; }
+  input, select { 
+    width: 100%; 
+    padding: 6px; 
+    margin-top: 3px; 
+    border-radius: 4px; 
+    border:1px solid #777; 
+    background-color: rgba(255,255,255,0.1);
+    color: #fff;
+  }
 
   button { cursor: pointer; }
 </style>
@@ -123,7 +134,6 @@ function gerarHorarios() {
   const chave = 'barbearia_' + data;
   const salvos = JSON.parse(localStorage.getItem(chave)) || [];
 
-  // Contar quantos agendamentos Fundador já existem
   const totalFundador = salvos.filter(a => a.servico === "Corte Certo 39,90").length;
 
   // Atualizar oferta de fundador se esgotou
@@ -139,14 +149,12 @@ function gerarHorarios() {
     const btn = document.createElement('button');
     btn.textContent = horario;
 
-    // Bloquear horário ocupado
     if(salvos.find(a => a.horario === horario)) {
       btn.disabled = true;
       btn.textContent += " (Ocupado)";
     }
 
     btn.onclick = () => agendarHorario(horario);
-
     div.appendChild(btn);
 
     minuto += 30;
@@ -182,7 +190,6 @@ function salvarAgendamento(){
   const chave = 'barbearia_' + data;
   const salvos = JSON.parse(localStorage.getItem(chave)) || [];
 
-  // Limite Teste Grátis
   if(servico === "Teste Grátis"){
     const totalTeste = salvos.filter(a => a.servico === "Teste Grátis").length;
     if(totalTeste >= limiteTeste){
@@ -190,7 +197,6 @@ function salvarAgendamento(){
     }
   }
 
-  // Limite Fundador
   if(servico === "Corte Certo 39,90"){
     const totalFundador = salvos.filter(a => a.servico === "Corte Certo 39,90").length;
     if(totalFundador >= limiteFundador){
