@@ -3,14 +3,14 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Corte Certo - Agendamento</title>
+<title>Corte Certo</title>
 
 <style>
 body {
   margin: 0;
   font-family: Arial, sans-serif;
   min-height: 100vh;
-  background: linear-gradient(135deg, #000000, #1a1a1a, #000000);
+  background: linear-gradient(135deg, #000000, #1c1c1c, #000000);
   color: #fff;
 }
 
@@ -21,38 +21,14 @@ body {
 }
 
 .card {
-  background: rgba(0,0,0,0.75);
-  border-radius: 14px;
+  background: rgba(0,0,0,0.7);
+  border-radius: 12px;
   padding: 20px;
-  box-shadow: 0 0 25px rgba(0,0,0,0.7);
+  box-shadow: 0 0 20px rgba(0,0,0,0.6);
 }
 
 h1, h2 {
   text-align: center;
-  margin-bottom: 10px;
-}
-
-.subtitulo {
-  text-align: center;
-  font-size: 14px;
-  opacity: 0.8;
-  margin-bottom: 15px;
-}
-
-button {
-  width: 100%;
-  padding: 12px;
-  margin-top: 8px;
-  border: none;
-  border-radius: 8px;
-  background: #d4af37;
-  color: #000;
-  font-weight: bold;
-  cursor: pointer;
-}
-
-button:hover {
-  opacity: 0.9;
 }
 
 input, select {
@@ -63,7 +39,6 @@ input, select {
   border: none;
   background: #111;
   color: #fff;
-  font-size: 15px;
 }
 
 select option {
@@ -71,8 +46,16 @@ select option {
   color: #fff;
 }
 
-.hidden {
-  display: none;
+button {
+  width: 100%;
+  padding: 12px;
+  margin-top: 10px;
+  border: none;
+  border-radius: 8px;
+  background: #d4af37;
+  color: #000;
+  font-weight: bold;
+  cursor: pointer;
 }
 
 .horarios button {
@@ -91,12 +74,8 @@ select option {
   color: #fff;
 }
 
-.confirmacao {
-  background: #0a0;
-  padding: 12px;
-  border-radius: 8px;
-  margin-top: 12px;
-  text-align: center;
+.hidden {
+  display: none;
 }
 </style>
 </head>
@@ -105,69 +84,56 @@ select option {
 
 <div class="container">
 
-  <!-- LOGIN -->
-  <div id="loginBox" class="card">
-    <h1>💈 Corte Certo</h1>
-    <p class="subtitulo">Agendamento Online</p>
-    <input id="usuario" placeholder="Usuário">
-    <input id="senha" type="password" placeholder="Senha">
-    <button onclick="fazerLogin()">Entrar</button>
-  </div>
+<!-- LOGIN -->
+<div id="login" class="card">
+  <h1>Corte Certo</h1>
+  <input id="usuario" placeholder="Usuário">
+  <input id="senha" type="password" placeholder="Senha">
+  <button onclick="login()">Entrar</button>
+</div>
 
-  <!-- CLIENTE -->
-  <div id="cliente" class="card hidden">
-    <h2>Agendar Horário</h2>
+<!-- CLIENTE -->
+<div id="cliente" class="card hidden">
+  <h2>Agendar Horário</h2>
 
-    <input id="nomeCliente" placeholder="Seu nome">
+  <input id="nomeCliente" placeholder="Seu nome">
+  <input id="data" type="date">
 
-    <input type="date" id="dataAgendamento">
+  <select id="pagamento">
+    <option value="">Forma de pagamento</option>
+    <option>Pix</option>
+    <option>Cartão</option>
+    <option>Dinheiro</option>
+  </select>
 
-    <select id="pagamento">
-      <option value="">Forma de pagamento</option>
-      <option>Pix (no local)</option>
-      <option>Cartão (no local)</option>
-      <option>Dinheiro</option>
-    </select>
+  <div class="horarios" id="horarios"></div>
+  <button onclick="logout()">Sair</button>
+</div>
 
-    <p><strong>Serviço:</strong> Corte Certo – R$ 39,90</p>
-
-    <div class="horarios" id="horarios"></div>
-
-    <div id="confirmacao" class="confirmacao hidden"></div>
-
-    <button onclick="logout()">Sair</button>
-  </div>
-
-  <!-- BARBEIRO -->
-  <div id="barbeiro" class="card hidden">
-    <h2>Agenda do Dia</h2>
-    <div id="agendaBarbeiro"></div>
-    <button onclick="logout()">Sair</button>
-  </div>
+<!-- BARBEIRO -->
+<div id="barbeiro" class="card hidden">
+  <h2>Agenda Completa</h2>
+  <div id="agenda"></div>
+  <button onclick="logout()">Sair</button>
+</div>
 
 </div>
 
 <script>
-const adminUser = "admin";
-const adminPass = "1234";
+const barbeiroUser = "barbeiro";
+const barbeiroPass = "1234";
 
 let agendamentos = JSON.parse(localStorage.getItem("agendamentos")) || [];
 
-function fazerLogin() {
-  const u = usuario.value;
-  const s = senha.value;
-
-  if (u === adminUser && s === adminPass) {
-    loginBox.classList.add("hidden");
+function login() {
+  if (usuario.value === barbeiroUser && senha.value === barbeiroPass) {
+    login.style.display = "none";
     barbeiro.classList.remove("hidden");
     carregarAgenda();
-  } else if (u && s) {
-    loginBox.classList.add("hidden");
-    cliente.classList.remove("hidden");
-    setDataHoje();
-    gerarHorarios();
   } else {
-    alert("Preencha usuário e senha");
+    login.style.display = "none";
+    cliente.classList.remove("hidden");
+    gerarHorarios();
   }
 }
 
@@ -175,20 +141,13 @@ function logout() {
   location.reload();
 }
 
-function setDataHoje() {
-  const hoje = new Date().toISOString().split("T")[0];
-  dataAgendamento.value = hoje;
-}
-
 function gerarHorarios() {
   horarios.innerHTML = "";
-  confirmacao.classList.add("hidden");
-
   for (let h = 8; h < 22; h++) {
-    for (let m of ["00","30"]) {
+    for (let m of ["00", "30"]) {
       const hora = `${String(h).padStart(2,"0")}:${m}`;
       const ocupado = agendamentos.find(a =>
-        a.hora === hora && a.data === dataAgendamento.value
+        a.data === data.value && a.hora === hora
       );
 
       const btn = document.createElement("button");
@@ -205,51 +164,42 @@ function gerarHorarios() {
   }
 }
 
-dataAgendamento.addEventListener("change", gerarHorarios);
+data.onchange = gerarHorarios;
 
 function agendar(hora) {
-  if (!nomeCliente.value || !pagamento.value) {
-    alert("Preencha nome e pagamento");
+  if (!nomeCliente.value || !data.value || !pagamento.value) {
+    alert("Preencha todos os campos");
     return;
   }
 
-  const data = dataAgendamento.value;
-
   agendamentos.push({
-    data,
+    data: data.value,
     hora,
     cliente: nomeCliente.value,
-    pagamento
+    pagamento: pagamento.value
   });
 
   localStorage.setItem("agendamentos", JSON.stringify(agendamentos));
-
-  confirmacao.innerHTML = `
-    ✅ <strong>Agendamento confirmado!</strong><br>
-    📅 ${data} às ${hora}<br>
-    💈 Corte Certo<br>
-    💳 ${pagamento}
-  `;
-  confirmacao.classList.remove("hidden");
-
+  alert("Horário agendado!");
   gerarHorarios();
 }
 
 function carregarAgenda() {
-  agendaBarbeiro.innerHTML = "";
+  agenda.innerHTML = "";
   agendamentos.forEach((a, i) => {
-    const div = document.createElement("div");
-    div.innerHTML = `
-      <p>📅 ${a.data} ⏰ ${a.hora}<br>
-      👤 ${a.cliente} – ${a.pagamento}</p>
+    agenda.innerHTML += `
+      <p>
+        📅 ${a.data} ⏰ ${a.hora}<br>
+        👤 ${a.cliente} | 💳 ${a.pagamento}
+      </p>
       <button class="cancelar" onclick="cancelar(${i})">Cancelar</button>
+      <hr>
     `;
-    agendaBarbeiro.appendChild(div);
   });
 }
 
 function cancelar(i) {
-  agendamentos.splice(i,1);
+  agendamentos.splice(i, 1);
   localStorage.setItem("agendamentos", JSON.stringify(agendamentos));
   carregarAgenda();
 }
